@@ -15,5 +15,5 @@ default:
 .PHONY: clean
 
 clean:
-	rm -f modules.order module.symvers Module.symvers *.o *.ko *.mod.* *.mod
+	rm -f modules.order module.symvers Module.symvers *.o *.ko *.mod.* *.mod .modules* .Module* .seesaw.*
 
