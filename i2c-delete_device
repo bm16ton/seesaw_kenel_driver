@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ $# -ne 1 ]
+then
+echo "USAGE: i2c-remove-dev address"
+echo "example;"
+echo "sudo i2c-remove-dev 0x68"
+exit
+return
+fi
+echo $1 | sudo tee /sys/class/i2c-adapter/i2c-17/delete_device

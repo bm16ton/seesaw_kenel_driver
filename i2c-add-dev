@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ $# -ne 2 ]
+then
+echo "USAGE: i2c-add-dev device-alias address"
+echo "example;"
+echo "sudo i2c-add-dev mpu6050 0x68"
+exit
+return
+fi
+echo $1 $2 | sudo tee /sys/class/i2c-adapter/i2c-17/new_device

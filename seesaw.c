@@ -22,7 +22,6 @@
 #define ADC0                  0x07
 #define ADC1                  0x08
 #define ADC2                  0x09
-#define ADC3                  0x0a
 
 
 
@@ -45,9 +44,15 @@ struct seesawadc_data {
 	u8 pwm3;
 //	u8 adc1_min;
 //	u8 adc1_max;
+	u8 adc0_input;
+	u8 adc0_target;
+    u8 adc0_label;
 	u8 adc1_input;
 	u8 adc1_target;
     u8 adc1_label;
+	u8 adc2_input;
+	u8 adc2_target;
+    u8 adc2_label;
 };
 
 static int I2C_Write(struct i2c_client *client, unsigned char *buf, unsigned int len)
@@ -102,7 +107,7 @@ static int seesawpwm3_write_value(struct i2c_client *client, u8 reg, u8 pwm1valu
 
 int seesawadc_read_value(struct i2c_client *client, u8 reg, u8 value)
 {
-	  i2c_smbus_write_byte_data(client, SEESAW_REG, 0x08);
+	  i2c_smbus_write_byte_data(client, SEESAW_REG, value);
 	  msleep(50);
       return i2c_smbus_read_word_data(client, SEESAW_REG);
 }
@@ -117,13 +122,12 @@ static ssize_t adc1_show(struct device *dev, struct device_attribute *attr,
 
     mutex_lock(&data->update_lock);
 
-    ret2 = seesawadc_read_value(client, SEESAW_REG, 0x8);
+    ret2 = seesawadc_read_value(client, SEESAW_REG, ADC1);
 
 	mutex_unlock(&data->update_lock);
 
 	return scnprintf(buf, PAGE_SIZE, "%d\n", ret2);
 }
-
 
 static ssize_t pwm1_store(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
@@ -179,6 +183,21 @@ static ssize_t pwm3_store(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
+static ssize_t adc0_input_show(struct device *dev, struct device_attribute *attr,
+		char *buf)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+    int ret2;
+    mutex_lock(&data->update_lock);
+
+    ret2 = seesawadc_read_value(client, SEESAW_REG, ADC0);
+
+	mutex_unlock(&data->update_lock);
+	printk(KERN_INFO "%d\n", ret2);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", ret2);
+}
+
 static ssize_t adc1_input_show(struct device *dev, struct device_attribute *attr,
 		char *buf)
 {
@@ -187,7 +206,22 @@ static ssize_t adc1_input_show(struct device *dev, struct device_attribute *attr
     int ret2;
     mutex_lock(&data->update_lock);
 
-    ret2 = seesawadc_read_value(client, SEESAW_REG, 0x8);
+    ret2 = seesawadc_read_value(client, SEESAW_REG, ADC1);
+
+	mutex_unlock(&data->update_lock);
+	printk(KERN_INFO "%d\n", ret2);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", ret2);
+}
+
+static ssize_t adc2_input_show(struct device *dev, struct device_attribute *attr,
+		char *buf)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+    int ret2;
+    mutex_lock(&data->update_lock);
+
+    ret2 = seesawadc_read_value(client, SEESAW_REG, ADC2);
 
 	mutex_unlock(&data->update_lock);
 	printk(KERN_INFO "%d\n", ret2);
@@ -239,6 +273,8 @@ static ssize_t adc1_label_show(struct device *dev, struct device_attribute *attr
 static DEVICE_ATTR_RO(adc1);
 static DEVICE_ATTR_RO(adc1_input);
 static DEVICE_ATTR_RO(adc1_label);
+static DEVICE_ATTR_RO(adc0_input);
+static DEVICE_ATTR_RO(adc2_input);
 static DEVICE_ATTR_RW(pwm1);
 static DEVICE_ATTR_RW(pwm2);
 static DEVICE_ATTR_RW(pwm3);
@@ -247,6 +283,8 @@ static struct attribute *seesawadc_attrs[] = {
 	&dev_attr_adc1.attr,
 	&dev_attr_adc1_input.attr,
 	&dev_attr_adc1_label.attr,
+	&dev_attr_adc0_input.attr,
+	&dev_attr_adc2_input.attr,
 	&dev_attr_pwm1.attr,
 	&dev_attr_pwm2.attr,
 	&dev_attr_pwm3.attr,
