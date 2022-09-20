@@ -57,6 +57,11 @@ struct seesawadc_data {
     u8 adc2_label;
     u8 neonum;
     u8 neobufsize;
+    u8 neostart1;
+    u8 neostart2;
+    u8 neogreen;
+    u8 neored;
+    u8 neoblue;
 };
 
 static int I2C_Write(struct i2c_client *client, unsigned char *buf, unsigned int len)
@@ -290,9 +295,10 @@ static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
 	unsigned char buf2[4] = {0};
 	unsigned char buf1[3] = {0};
 	ret2 = kstrtou8(buf, 10, &neo2bufs);
-    data->neonum = ret2;
-    data->neobufsize = ret2 * 3;
-
+	 printk(KERN_INFO "to u8  %d\n", neo2bufs);
+    data->neonum = neo2bufs;
+    data->neobufsize = neo2bufs * 3;
+    printk(KERN_INFO "buff size set to  %d\n", data->neobufsize);
 	
 	buf1[0] = 0xe;
 	buf1[1] = 0x2; 
@@ -321,6 +327,111 @@ static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
+static ssize_t neostart1_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 startone;
+	u8 poo;
+	(void)client;
+    
+    poo = kstrtou8(buf, 10, &startone);
+    data->neostart1 = startone;
+    printk(KERN_INFO "neo start 1 =  %d\n", data->neostart1);
+    return count;
+    
+}
+
+static ssize_t neostart2_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 starttwo;
+    u8 poo;
+    (void)client;
+    
+    poo = kstrtou8(buf, 10, &starttwo);
+    data->neostart2 = starttwo;
+    printk(KERN_INFO "neo start 2 =  %d\n", data->neostart2);
+    return count;
+    
+}
+
+static ssize_t neoblue_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 blue;
+    u8 poo;
+    (void)client;
+    
+    poo = kstrtou8(buf, 10, &blue);
+    data->neoblue = blue;
+    printk(KERN_INFO "neo blue =  %d\n", data->neoblue);
+    return count;
+    
+}
+
+static ssize_t neored_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 red;
+    u8 poo;
+    (void)client;
+    
+    poo = kstrtou8(buf, 10, &red);
+    data->neored = red;
+    printk(KERN_INFO "neo red =  %d\n", data->neored);
+    return count;
+    
+}
+
+static ssize_t neogreen_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 green;
+    u8 poo;
+    (void)client;
+    
+    poo = kstrtou8(buf, 10, &green);
+    data->neogreen = green;
+    printk(KERN_INFO "neo green =  %d\n", data->neogreen);
+    return count;
+    
+}
+
+static ssize_t neoshow_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 neopixel[6] = {0};
+	u8 poo;
+	u8 buf2[6] = {0};
+	int ret;
+
+	poo = kstrtou8(buf, 10, neopixel);
+
+    buf2[0] = 0x4;
+	buf2[1] = data->neostart1;
+	buf2[2] = data->neostart2;
+	buf2[3] = data->neogreen;
+	buf2[4] = data->neored;
+	buf2[5] = data->neoblue;
+    ret = I2C_Write(client, buf2, 6);
+   
+    return count;
+
+}
+
+
 static ssize_t neopixel_store(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
 {
@@ -330,8 +441,18 @@ static ssize_t neopixel_store(struct device *dev, struct device_attribute *attr,
 	u8 poo;
 	u8 buf2[6] = {0};
 	int ret;
+
 	poo = kstrtou8(buf, 10, neopixel);
+//	printk(KERN_INFO "neopixels =   %d\n", neopixel);
 	
+
+	printk(KERN_INFO "buf0  %d\n", neopixel[0]);
+    printk(KERN_INFO "buf1  %d\n", neopixel[1]);
+    printk(KERN_INFO "buf2  %d\n", neopixel[2]);
+    printk(KERN_INFO "buf3  %d\n", neopixel[3]);
+    printk(KERN_INFO "buf4  %d\n", neopixel[4]);
+    printk(KERN_INFO "buf5  %d\n", neopixel[5]);
+    
 	buf2[0] = 0x4;
 	buf2[1] = neopixel[0];
 	buf2[2] = neopixel[1];
@@ -339,6 +460,13 @@ static ssize_t neopixel_store(struct device *dev, struct device_attribute *attr,
 	buf2[4] = neopixel[3];
 	buf2[5] = neopixel[4];
     ret = I2C_Write(client, buf2, 6);
+    
+    printk(KERN_INFO "buf0  %d\n", buf2[0]);
+    printk(KERN_INFO "buf1  %d\n", buf2[1]);
+    printk(KERN_INFO "buf2  %d\n", buf2[2]);
+    printk(KERN_INFO "buf3  %d\n", buf2[3]);
+    printk(KERN_INFO "buf4  %d\n", buf2[4]);
+    printk(KERN_INFO "buf5  %d\n", buf2[5]);
     return count;
 }
 
@@ -349,6 +477,12 @@ static DEVICE_ATTR_RO(adc0_input);
 static DEVICE_ATTR_RO(adc2_input);
 static DEVICE_ATTR_WO(neopixel);
 static DEVICE_ATTR_WO(neoint);
+static DEVICE_ATTR_WO(neostart1);
+static DEVICE_ATTR_WO(neostart2);
+static DEVICE_ATTR_WO(neoblue);
+static DEVICE_ATTR_WO(neored);
+static DEVICE_ATTR_WO(neogreen);
+static DEVICE_ATTR_WO(neoshow);
 static DEVICE_ATTR_RW(pwm1);
 static DEVICE_ATTR_RW(pwm2);
 static DEVICE_ATTR_RW(pwm3);
@@ -361,6 +495,12 @@ static struct attribute *seesawadc_attrs[] = {
 	&dev_attr_adc2_input.attr,
 	&dev_attr_neopixel.attr,
 	&dev_attr_neoint.attr,
+	&dev_attr_neostart1.attr,
+	&dev_attr_neostart2.attr,
+	&dev_attr_neored.attr,
+	&dev_attr_neogreen.attr,
+	&dev_attr_neoblue.attr,
+	&dev_attr_neoshow.attr,
 	&dev_attr_pwm1.attr,
 	&dev_attr_pwm2.attr,
 	&dev_attr_pwm3.attr,
