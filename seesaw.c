@@ -285,31 +285,34 @@ static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
 	u8 ret3;
 	u8 ret4;
 	u8 ret5;
+	unsigned char buf4[2]  = {0};
+	unsigned char buf3[3] = {0};
+	unsigned char buf2[4] = {0};
+	unsigned char buf1[3] = {0};
 	ret2 = kstrtou8(buf, 10, &neo2bufs);
     data->neonum = ret2;
     data->neobufsize = ret2 * 3;
 
-	unsigned char buf1[3] = {0};
+	
 	buf1[0] = 0xe;
 	buf1[1] = 0x2; 
 	buf1[2] = 0x1;
     ret = I2C_Write(client, buf1, 3);
     msleep(50);
-    unsigned char buf2[4] = {0};
+    
     buf2[0] = 0xe;
 	buf2[1] = 0x3; 
 	buf2[2] = 0x0;
 	buf2[3] = data->neobufsize;
     ret3 = I2C_Write(client, buf2, 4);
     msleep(50);
-    unsigned char buf3[3] = {0};
+    
     buf3[0] = 0xe;
 	buf3[1] = 0x1; 
 	buf3[2] = 0xa;
     ret4 = I2C_Write(client, buf3, 3);
     msleep(50);
-    
-    unsigned char buf4[2] = {0};
+            
     buf4[0] = 0xe;
 	buf4[1] = 0x5; 
     ret5 = I2C_Write(client, buf4, 2);
@@ -325,10 +328,10 @@ static ssize_t neopixel_store(struct device *dev, struct device_attribute *attr,
 	struct i2c_client *client = data->client;
 	u8 neopixel[6] = {0};
 	u8 poo;
+	u8 buf2[6] = {0};
+	int ret;
 	poo = kstrtou8(buf, 10, neopixel);
 	
-	unsigned char buf2[6] = {0};
-	int ret;
 	buf2[0] = 0x4;
 	buf2[1] = neopixel[0];
 	buf2[2] = neopixel[1];
