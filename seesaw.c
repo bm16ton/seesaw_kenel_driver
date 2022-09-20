@@ -18,6 +18,8 @@
 #define CLASS_NAME	"seesawadc"
 #define NAME		"seesaw-adc"
 #define SEESAW_REG      	  0x09
+#define SEESAWNEO             0xe
+#define NEOWRITE              0x4
 #define SEESAWADC_PWMCTL			  0x08
 #define ADC0                  0x07
 #define ADC1                  0x08
@@ -53,6 +55,8 @@ struct seesawadc_data {
 	u8 adc2_input;
 	u8 adc2_target;
     u8 adc2_label;
+    u8 neonum;
+    u8 neobufsize;
 };
 
 static int I2C_Write(struct i2c_client *client, unsigned char *buf, unsigned int len)
@@ -269,12 +273,79 @@ static ssize_t adc1_label_show(struct device *dev, struct device_attribute *attr
 	return scnprintf(buf, PAGE_SIZE, "seesaweadc\n");
 }
 
+static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+
+    u8 neo2bufs;
+	u8 ret;
+	u8 ret2;
+	u8 ret3;
+	u8 ret4;
+	u8 ret5;
+	ret2 = kstrtou8(buf, 10, &neo2bufs);
+    data->neonum = ret2;
+    data->neobufsize = ret2 * 3;
+
+	unsigned char buf1[3] = {0};
+	buf1[0] = 0xe;
+	buf1[1] = 0x2; 
+	buf1[2] = 0x1;
+    ret = I2C_Write(client, buf1, 3);
+    msleep(50);
+    unsigned char buf2[4] = {0};
+    buf2[0] = 0xe;
+	buf2[1] = 0x3; 
+	buf2[2] = 0x0;
+	buf2[3] = data->neobufsize;
+    ret3 = I2C_Write(client, buf2, 4);
+    msleep(50);
+    unsigned char buf3[3] = {0};
+    buf3[0] = 0xe;
+	buf3[1] = 0x1; 
+	buf3[2] = 0xa;
+    ret4 = I2C_Write(client, buf3, 3);
+    msleep(50);
+    
+    unsigned char buf4[2] = {0};
+    buf4[0] = 0xe;
+	buf4[1] = 0x5; 
+    ret5 = I2C_Write(client, buf4, 2);
+    msleep(50);       
+	
+	return count;
+}
+
+static ssize_t neopixel_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
+{
+	struct seesawadc_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	u8 neopixel[6] = {0};
+	u8 poo;
+	poo = kstrtou8(buf, 10, neopixel);
+	
+	unsigned char buf2[6] = {0};
+	int ret;
+	buf2[0] = 0x4;
+	buf2[1] = neopixel[0];
+	buf2[2] = neopixel[1];
+	buf2[3] = neopixel[2];
+	buf2[4] = neopixel[3];
+	buf2[5] = neopixel[4];
+    ret = I2C_Write(client, buf2, 6);
+    return count;
+}
 
 static DEVICE_ATTR_RO(adc1);
 static DEVICE_ATTR_RO(adc1_input);
 static DEVICE_ATTR_RO(adc1_label);
 static DEVICE_ATTR_RO(adc0_input);
 static DEVICE_ATTR_RO(adc2_input);
+static DEVICE_ATTR_WO(neopixel);
+static DEVICE_ATTR_WO(neoint);
 static DEVICE_ATTR_RW(pwm1);
 static DEVICE_ATTR_RW(pwm2);
 static DEVICE_ATTR_RW(pwm3);
@@ -285,6 +356,8 @@ static struct attribute *seesawadc_attrs[] = {
 	&dev_attr_adc1_label.attr,
 	&dev_attr_adc0_input.attr,
 	&dev_attr_adc2_input.attr,
+	&dev_attr_neopixel.attr,
+	&dev_attr_neoint.attr,
 	&dev_attr_pwm1.attr,
 	&dev_attr_pwm2.attr,
 	&dev_attr_pwm3.attr,
