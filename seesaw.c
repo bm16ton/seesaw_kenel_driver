@@ -290,6 +290,8 @@ static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
 	u8 ret3;
 	u8 ret4;
 	u8 ret5;
+	u8 ret6;
+	u8 ret7;
 	unsigned char buf4[2]  = {0};
 	unsigned char buf3[3] = {0};
 	unsigned char buf2[4] = {0};
@@ -303,27 +305,63 @@ static ssize_t neoint_store(struct device *dev, struct device_attribute *attr,
 	buf1[0] = 0xe;
 	buf1[1] = 0x2; 
 	buf1[2] = 0x1;
+	mutex_lock(&data->update_lock);
     ret = I2C_Write(client, buf1, 3);
+    mutex_unlock(&data->update_lock);
+    if (ret) {
+    ;
+    }
     msleep(50);
     
     buf2[0] = 0xe;
 	buf2[1] = 0x3; 
 	buf2[2] = 0x0;
 	buf2[3] = data->neobufsize;
+	mutex_lock(&data->update_lock);
     ret3 = I2C_Write(client, buf2, 4);
+    mutex_unlock(&data->update_lock);
+        if (ret3) {
+    ;
+    }
     msleep(50);
     
     buf3[0] = 0xe;
 	buf3[1] = 0x1; 
 	buf3[2] = 0xa;
+	mutex_lock(&data->update_lock);
     ret4 = I2C_Write(client, buf3, 3);
+    mutex_unlock(&data->update_lock);
+        if (ret4) {
+    ;
+    }
     msleep(50);
             
     buf4[0] = 0xe;
 	buf4[1] = 0x5; 
+	mutex_lock(&data->update_lock);
     ret5 = I2C_Write(client, buf4, 2);
+    mutex_unlock(&data->update_lock);
+        if (ret5) {
+    ;
+    }
     msleep(50);       
 	
+	uint8_t cmdWrite[] = { 0xe, 0x4, 0x0, 0x3, 0x6, 0x2, 0x6f };
+	mutex_lock(&data->update_lock);
+	ret6 = I2C_Write(client, cmdWrite, sizeof(cmdWrite));
+	mutex_unlock(&data->update_lock);
+	    if (ret6) {
+    ;
+    }
+	msleep(50);
+	
+	uint8_t cmdWrite4[] = { 0xe, 0x5 };
+	mutex_lock(&data->update_lock);
+	ret7 = I2C_Write(client, cmdWrite4, sizeof(cmdWrite4));
+	mutex_unlock(&data->update_lock);
+	    if (ret7) {
+    ;
+    }
 	return count;
 }
 
@@ -414,19 +452,44 @@ static ssize_t neoshow_store(struct device *dev, struct device_attribute *attr,
 	struct i2c_client *client = data->client;
 	u8 neopixel[6] = {0};
 	u8 poo;
-	u8 buf2[6] = {0};
+	u8 buf2[7] = {0};
+	u8 buf4[2] = {0};
 	int ret;
+	int ret5;
 
 	poo = kstrtou8(buf, 10, neopixel);
 
-    buf2[0] = 0x4;
-	buf2[1] = data->neostart1;
-	buf2[2] = data->neostart2;
-	buf2[3] = data->neogreen;
-	buf2[4] = data->neored;
-	buf2[5] = data->neoblue;
-    ret = I2C_Write(client, buf2, 6);
-   
+    buf2[0] = 0xe;
+    buf2[1] = 0x4;
+	buf2[2] = data->neostart1;
+	buf2[3] = data->neostart2;
+	buf2[4] = data->neogreen;
+	buf2[5] = data->neored;
+	buf2[6] = data->neoblue;
+	mutex_lock(&data->update_lock);
+    ret = I2C_Write(client, buf2, 7);
+    mutex_unlock(&data->update_lock);
+    if (ret) {
+    ;
+    }
+	printk(KERN_INFO "buf0  %d\n", buf2[0]);
+    printk(KERN_INFO "buf1  %d\n", buf2[1]);
+    printk(KERN_INFO "buf2  %d\n", buf2[2]);
+    printk(KERN_INFO "buf3  %d\n", buf2[3]);
+    printk(KERN_INFO "buf4  %d\n", buf2[4]);
+    printk(KERN_INFO "buf5  %d\n", buf2[5]);
+    printk(KERN_INFO "buf5  %d\n", buf2[6]);
+    
+    msleep(50);
+            
+    buf4[0] = 0xe;
+	buf4[1] = 0x5; 
+	mutex_lock(&data->update_lock);
+    ret5 = I2C_Write(client, buf4, 2);
+    mutex_unlock(&data->update_lock);
+    if (ret5) {
+    ;
+    }
     return count;
 
 }
